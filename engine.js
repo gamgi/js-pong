@@ -70,12 +70,71 @@ function VisualClass(canvasId, width, height) {
     };
     this.text = function( text, x, y) {
         display.ctx.fillText( text, x, y);
+    };
+    this.setFont = function( fontString) {
+        display.ctx.font = fontString;
+    };
+    this.setColor = function( color){
+        display.ctx.fillStyle = color;
+    };
+    this.drawImage = function( key, x, y) {
+        display.ctx.drawImage(ImageClass.images[key], x, y);
     }
     /**
      * Constructor
      */
     //this.init();
 }
+
+
+function ImageClass( canvasId) {
+    ImageClass.images = [];
+    //Stores images but dows not draw
+    /**
+     * Private
+     */
+    var images = ImageClass.images;
+    var unloaded = 0;
+    var loaded = 0;
+    /**
+     * Public
+     */
+    this.loaded = true;
+    /**
+     * Methods
+     */
+    this.getImage = function( key) {
+        if (key in image)
+            return image[key];
+        else
+            console.log("Unknown image key "+key);
+    }
+    this.loadImage = function( key, source) {
+        images[key] = new Image();
+        unloaded++;
+        images[key].onload = function(){ loaded++;unloaded--;this.loaded = true;}.bind(this); //NB loaded refers to image specific
+        images[key].onerror = function(){ console.log("Unable to load "+source);};
+        images[key].src = source;
+        this.loaded = false;
+    }.bind(this);
+
+    this.preLoad = function( callBack) {
+        var loadStart = new Date().getTime();
+        var imageHandle = this;
+        var loadInterval = setInterval( function() {
+            timeNow = new Date().getTime();
+            if (imageHandle.loaded == true){
+                clearInterval( loadInterval);
+                callBack();
+            }else if (timeNow - loadStart > 4000){
+                clearInterval( loadInterval);
+                console.log("Unable to load images");
+            }
+        }, 200);
+    };
+}
+
+
 
 function InputClass() {
     /**

@@ -1,14 +1,19 @@
 ﻿<!DOCTYPE html>
 <html>
     <head>
-        <title>Tetris in Javascript</title>
+        <title>Pong</title>
         <meta charset="utf-8" /><html>
         <style type="text/css">
+            @font-face {
+                font-family: 'gameplay';
+                src: url('Gameplay.ttf');
+            }
             html, body {
                 margin: 0;
                 padding: 0;
                 box-sizing: border-box;
                 background-color: gray;
+                font-family: 'gameplay'
             }
             #frame {
                 margin: 0 auto;
@@ -16,7 +21,6 @@
                 text-align: center;
             }
             #screen {
-                margin-left: 150px; /* width of canvas is 300, requires 150px on left to be "centered" */
             }
             a {
                 color: white;
@@ -26,8 +30,10 @@
         <div id="frame"><canvas id="screen"></canvas></frame>
         <script src="engine.js"></script>
         <script src="game.js"></script>
+        <script src="fullscreen.js"></script>
         <br />
-        <a href="http://gamgi.github.io/">Back to stuff..</a>
+        asd
+        <input type="button" onClick="toggleFullScreen()" value="Fullscreen" />
     </body>
 </html>
 
