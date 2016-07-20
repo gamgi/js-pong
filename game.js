@@ -43,10 +43,10 @@ var GAME = new (function() {
         this.render = function() {
             stickers.forEach( function( o) {
                 visual.setAlpha( o.alpha);
-                var add = (1-o.alpha)*160;
-                visual.setRotation( o.x, o.y, 20-o.alpha*20);
-                //visual.drawImageStretchDelta(o.key, o.x-add/2, o.y-add/2, add, add);
-                visual.drawImageStretchDelta(o.key, -images.imageWidth( o.key)/2-add/2, -images.imageHeight( o.key)/2-add/2, add, add);
+                var add = (1-o.alpha)*60;
+                //visual.setRotation( o.x, o.y, 20-o.alpha*20);
+                visual.drawImageStretchDelta(o.key, o.x-add/2-images.imageWidth( o.key)/2, o.y-add/2-images.imageHeight( o.key)/2, add, add);
+                //visual.drawImageStretchDelta(o.key, -images.imageWidth( o.key)/2-add/2, -images.imageHeight( o.key)/2-add/2, add, add);
             });
             visual.restore();
         };
@@ -116,7 +116,7 @@ var GAME = new (function() {
             var width = 50;
             var height = 50;
             var velocity = [3.1,3.9];
-            var angularVelocity = 1;
+            var angularVelocity = 0;
             var angle = 0;
             this.update = function() {
                 // Velocity and bounds
@@ -125,20 +125,23 @@ var GAME = new (function() {
                 if (x<=width/2) {
                     x = width/2;
                     velocity[0] = - velocity[0];
-                    angularVelocity += velocity[1];
+                    angularVelocity = velocity[1];
                 }
                 if (x>=WIDTH-width/2) {
                     x = WIDTH-width/2;
                     velocity[0] = - velocity[0];
+                    angularVelocity = -velocity[1];
                 }
                 y += velocity[1];
                 if (y<=height/2) {
                     y = height/2;
                     velocity[1] = - velocity[1];
+                    angularVelocity = -velocity[0];
                 }
                 if (y>=HEIGHT-height/2) {
                     y = HEIGHT-height/2;
                     velocity[1] = - velocity[1];
+                    angularVelocity = velocity[0];
                 }
                 // Angular velocity
                 angle += angularVelocity;
