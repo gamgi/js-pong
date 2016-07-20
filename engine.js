@@ -3,6 +3,9 @@ function TimerClass( targetFPS, updateFunction) {
     /**
      * Private
      */
+    // Pausing
+    var paused = false;
+    var tPause = undefined;
     // Animationrequests
     var requestId;
     // Timing
@@ -80,6 +83,21 @@ function VisualClass(canvasId, width, height) {
     this.drawImage = function( key, x, y) {
         display.ctx.drawImage(ImageClass.images[key], x, y);
     }
+    this.setAlpha = function( a) {
+        display.ctx.save();
+        display.ctx.globalAlpha = a;
+        //display.ctx.drawImage(ImageClass.images[key], x, y);
+    };
+    this.restore = function() {
+        display.ctx.restore();
+    };
+    this.drawImageStretch = function ( key, x, y, w, h) {
+        display.ctx.drawImage(ImageClass.images[key], 0, 0, ImageClass.images[key].width, ImageClass.images[key].height, x,y, w, h);
+    };
+    this.drawImageStretchDelta = function ( key, x, y, w, h) {
+        display.ctx.drawImage(ImageClass.images[key], 0, 0, ImageClass.images[key].width, ImageClass.images[key].height, x,y, ImageClass.images[key].width + w, ImageClass.images[key].height + h);
+    };
+
     /**
      * Constructor
      */

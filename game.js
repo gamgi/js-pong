@@ -1,9 +1,11 @@
-GAME = (function() {
+"use strict";
+var GAME = new (function() {
     /**
      * Private
      */
     var WIDTH = 800;
     var HEIGHT = 600;
+    var stopped = true;
     var timer = new TimerClass( 40, run);
     var visual = new VisualClass('screen', WIDTH, HEIGHT);
     var images = new ImageClass();
@@ -13,52 +15,63 @@ GAME = (function() {
     // Sprite Sticker handler
     var hSpriteSticker = new (function() {
         var stickers = [];
-        this.sticker = function( key, tLive, tFade) {
+        this.add = function( key, x, y, tLive, tFade) {
             var tNow = Date.now();
-            var newSticker = {'key':key, 'tStart':tNow, 'tLive':tNow+tLive, 'tFade':tNow+tFade, 'alpha': 1};
+            var newSticker = {'key':key, 'x':x, 'y':y, 'tStart':tNow, 'tLive':tNow+tLive, 'tFade':tNow+tLive+tFade, 'alpha': 1};
             stickers.push( newSticker);
         }
         this.update = function() {
             var tNow = Date.now();
             var amount = stickers.length;
             for (var i = 0; i < amount; i++) {
-                var o = stickers[ amount];
+                var o = stickers[ i];
             //stickers.forEach( function( o) {
                 if (tNow > o.tFade) {
                     //kill sticker
-                    o.delete();
+                    //delete o;
+                    delete stickers[i];
                     stickers.splice( i, 1);
                     amount--;
                     i--;
-                }else if ( tNow > tLive) {
-                    o['alpha'] = (tNow - tFade) / (tFade - tLive);
+                }else if ( tNow > o.tLive) {
+                    o.alpha = 1 - (tNow - o.tLive) / (o.tFade - o.tLive);
                 }
             }
             
         };
+        // Draw stickers with alpha and size stretch
+        this.render = function() {
+            stickers.forEach( function( o) {
+                visual.setAlpha( o.alpha);
+                var add = (1-o.alpha)*20;
+                visual.drawImageStretchDelta(o.key, o.x-add/2, o.y-add/2, add, add);
+            });
+            visual.restore();
+        };
     })();
     // Coutndown handler
-    var hCountDown = (function() {
-        var numer = 3;
+    var hCountDown = new (function() {
+        var number = 3;
         var running = false;
         var tNextTick = undefined;
         var callback = undefined;
-        this.start = function( n, cal) {
+        this.start = function( cal) {
             callback = cal;
-            number = n;
+            number = 3;
             running = true;
-            tNextTick = new Date.now() + 900;
+            tNextTick = Date.now() + 900;
         }
         this.update = function() {
             if (running) {
-                if (Date.now() > tNextTick) {
-                    tNextTick = new Date.now() + 900;
+                var tNow = Date.now();
+                if (tNow > tNextTick) {
+                    tNextTick = tNow + 900;
+                    hSpriteSticker.add('t'+number, 400-100, 300-35, 400, 200);
                     number --;
-                    if (number == 0) {
-                        cal(); 
-                    }else if (number < 0) {
+                    if (number < 0) {
                         // End timer, run callback
                         running = false;
+                        callback(); 
                     }
                 }
             }
@@ -78,6 +91,17 @@ GAME = (function() {
             var height = 150;
             var y = 300;
             //PUBLIC
+            this.update = function() {
+                var inputs = input.pollKeys();
+                for (var i = 0; i<inputs.length; i++){
+                    var key = inputs[i];
+                    if ( key == keyUp){ // Up key (rotation)
+                        var key = inputs.pop();
+                        alert('je');
+                        y+=10;
+                    }
+                }
+            }
             this.render = function() {
                 //visual.rectangle(x - width / 2, y - height / 2, width, height);
                 visual.drawImage('pad',x-width/2,y-height/2);
@@ -137,20 +161,26 @@ GAME = (function() {
             players.forEach( function( o) {o.render()});
             //Ball
             balls.forEach( function( o) {o.render()});
+            // Stickers
+            hSpriteSticker.render();
 
 
         };
         this.update = function() {
-            // Input
-            var inputs = input.pollKeys();
-            while ( inputs.length != 0) {
-                var key = inputs.pop();
-                if ( key == 38){ // Up key (rotation)
-                }else if( key == -40) { // Release Down key (move normal speed)
+            // Coundown
+            hCountDown.update();
+            if (stopped == false) {
+                // Input
+                var inputs = input.pollKeys();
+                while ( inputs.length != 0) {
+                    var key = inputs.pop();
+                    if ( key == 38){ // Up key (rotation)
+                    }else if( key == -40) { // Release Down key (move normal speed)
+                    }
                 }
+                // Ball
+                balls.forEach( function( o) {o.update()});
             }
-            // Ball
-            balls.forEach( function( o) {o.update()});
             // Stickers
             hSpriteSticker.update();
         };
@@ -158,7 +188,7 @@ GAME = (function() {
          * Constructor
          */
         this.init = function() {
-            visual.setFont("14px Impact");
+            //hSpriteSticker.add('t0', 50, 50, 1000, 1000, 1);
         }
     }
     /**
@@ -166,6 +196,7 @@ GAME = (function() {
      */
     this.init = function() {
         visual.init();
+        visual.setFont("14px Impact");
         pong.init();
         //visual.rectangle(0, 0, 90, 90);
         console.log('Game Initialized');
@@ -181,6 +212,7 @@ GAME = (function() {
         images.preLoad( function(){
             //bumpH.init();
             timer.start();
+            hCountDown.start( function(){ stopped = false;});
         });
     };
     /**
@@ -200,6 +232,6 @@ GAME = (function() {
     return {
         init: this.init
     };
-}());
+});
 
 window.onload = GAME.init();
