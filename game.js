@@ -43,8 +43,10 @@ var GAME = new (function() {
         this.render = function() {
             stickers.forEach( function( o) {
                 visual.setAlpha( o.alpha);
-                var add = (1-o.alpha)*20;
-                visual.drawImageStretchDelta(o.key, o.x-add/2, o.y-add/2, add, add);
+                var add = (1-o.alpha)*160;
+                visual.setRotation( o.x, o.y, 20-o.alpha*20);
+                //visual.drawImageStretchDelta(o.key, o.x-add/2, o.y-add/2, add, add);
+                visual.drawImageStretchDelta(o.key, -images.imageWidth( o.key)/2-add/2, -images.imageHeight( o.key)/2-add/2, add, add);
             });
             visual.restore();
         };
@@ -66,7 +68,7 @@ var GAME = new (function() {
                 var tNow = Date.now();
                 if (tNow > tNextTick) {
                     tNextTick = tNow + 900;
-                    hSpriteSticker.add('t'+number, 400-100, 300-35, 400, 200);
+                    hSpriteSticker.add('t'+number, 400, 300, 400, 200);
                     number --;
                     if (number < 0) {
                         // End timer, run callback
@@ -89,7 +91,7 @@ var GAME = new (function() {
             //PRIVATE
             var width = 30;
             var height = 150;
-            var y = 300;
+            var y = 300-height/2;
             //PUBLIC
             this.handleInput = function( key) {
                 if (key == keyUp){

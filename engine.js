@@ -127,9 +127,21 @@ function ImageClass( canvasId) {
     /**
      * Methods
      */
+    this.imageWidth = function( key) {
+        if (key in images)
+            return images[key].width;
+        else
+            console.log("Unknown image key "+key);
+    }
+    this.imageHeight = function( key) {
+        if (key in images)
+            return images[key].height;
+        else
+            console.log("Unknown image key "+key);
+    }
     this.getImage = function( key) {
-        if (key in image)
-            return image[key];
+        if (key in images)
+            return images[key];
         else
             console.log("Unknown image key "+key);
     }
