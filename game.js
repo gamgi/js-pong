@@ -15,9 +15,12 @@ var GAME = new (function() {
     // Sprite Sticker handler
     var hSpriteSticker = new (function() {
         var stickers = [];
-        this.add = function( key, x, y, tLive, tFade) {
+        this.add = function( key, x, y, tLive, tFade, scale) {
+            if (scale === undefined) {
+                scale = 60;
+            }
             var tNow = Date.now();
-            var newSticker = {'key':key, 'x':x, 'y':y, 'tStart':tNow, 'tLive':tNow+tLive, 'tFade':tNow+tLive+tFade, 'alpha': 1};
+            var newSticker = {'key':key, 'x':x, 'y':y, 'tStart':tNow, 'tLive':tNow+tLive, 'tFade':tNow+tLive+tFade, 'alpha': 1, 'scale':scale};
             stickers.push( newSticker);
         }
         this.update = function() {
@@ -43,7 +46,7 @@ var GAME = new (function() {
         this.render = function() {
             stickers.forEach( function( o) {
                 visual.setAlpha( o.alpha);
-                var add = (1-o.alpha)*60;
+                var add = (1-o.alpha)*o.scale;
                 //visual.setRotation( o.x, o.y, 20-o.alpha*20);
                 visual.drawImageStretchDelta(o.key, o.x-add/2-images.imageWidth( o.key)/2, o.y-add/2-images.imageHeight( o.key)/2, add, add);
                 //visual.drawImageStretchDelta(o.key, -images.imageWidth( o.key)/2-add/2, -images.imageHeight( o.key)/2-add/2, add, add);
@@ -81,7 +84,6 @@ var GAME = new (function() {
     })();
     function startCountDown( callBack) {
         stateFlags[ countDown] = true;
-        
     }
     function PongGame() {
         /**
@@ -103,11 +105,14 @@ var GAME = new (function() {
                 if ( y < 0) y = 0;
                 if ( y > HEIGHT-height) y = HEIGHT-height;
             }
+            this.getCollisionBox = function() {
+                return {'x':x, 'y':y, 'x2':x+width, 'y2':y+height};
+            }
             this.update = function() {
             }
             this.render = function() {
                 //visual.rectangle(x - width / 2, y - height / 2, width, height);
-                visual.drawImageStretch('pad', x-width/2, y, width, height);
+                visual.drawImageStretch('pad', x, y, width, height);
             };
         };
         function Ball() {
@@ -115,22 +120,47 @@ var GAME = new (function() {
             var y = HEIGHT / 2;
             var width = 50;
             var height = 50;
-            var velocity = [3.1,3.9];
+            var velocity = [-6.1,2.9];
             var angularVelocity = 0;
-            var angle = 0;
-            this.update = function() {
-                // Velocity and bounds
-                // NB. because the ball iss drawn with rotation, it's origin is at center
-                x += velocity[0];
-                if (x<=width/2) {
-                    x = width/2;
-                    velocity[0] = - velocity[0];
-                    angularVelocity = velocity[1];
+            var angle = 0; 
+            /**
+             * Methods
+             */
+            function checkCollision( box) {
+                if (( x >= box.x-width/2 && x <= box.x2+width/2) && ( y >= box.y-height/2 && y <= box.y2+height/2)){
+                    if (velocity[0] < 0) { //Approeaching from right
+                        x = box.x2+width/2+1;
+                        velocity[0] = - velocity[0];
+                        angularVelocity = velocity[1];
+                    }else if(velocity[0] > 0) {
+                        x = box.x-width/2-1;
+                        velocity[0] = - velocity[0];
+                        angularVelocity = -velocity[1];
+                    }
+                    //stopped = true;
+                    return true;
                 }
-                if (x>=WIDTH-width/2) {
-                    x = WIDTH-width/2;
-                    velocity[0] = - velocity[0];
-                    angularVelocity = -velocity[1];
+                return false;
+            }
+            /**
+             * Public
+             */
+            this.update = function() {
+                // NB. because the ball iss drawn with rotation, it's origin is at center
+                // Velocity and bounds
+                x += velocity[0];
+                // Out of bounds
+                if (x<=-width/2) {
+                    stopped = true;
+                    hSpriteSticker.add('t_player_scores', 400, 300, 10, 800, 60);
+                    hSpriteSticker.add('t_b', 400, 300, 10, 1000, 90);
+                    hCountDown.start( function(){ x = 400; y = 300; stopped = false;});
+                }
+                if (x>=WIDTH+width/2) {
+                    stopped = true;
+                    hSpriteSticker.add('t_player_scores', 400, 300, 10, 800, 60);
+                    hSpriteSticker.add('t_a', 400, 300, 10, 1000, 90);
+                    hCountDown.start( function(){ x = 400; y = 300; stopped = false;});
                 }
                 y += velocity[1];
                 if (y<=height/2) {
@@ -145,6 +175,12 @@ var GAME = new (function() {
                 }
                 // Angular velocity
                 angle += angularVelocity;
+
+
+                // Collision with players
+                players.forEach( function( p) {
+                    checkCollision( p.getCollisionBox());
+                });
             }
             this.render = function() {
                 visual.setRotation( x, y, angle);
@@ -153,8 +189,8 @@ var GAME = new (function() {
             };
         }
         var players = [];
-        players.push( new Player( 0, "P1", 0, input.UP, input.DOWN, input.SPACE));
-        players.push( new Player( 1, "P2", 800, input.UP, input.DOWN, input.SPACE));
+        players.push( new Player( 0, "P1", -15, input.UP, input.DOWN, input.SPACE));
+        players.push( new Player( 1, "P2", 800-15, input.UP, input.DOWN, input.SPACE));
         var balls = [];
         balls.push( new Ball());
         /**
@@ -225,6 +261,9 @@ var GAME = new (function() {
         images.loadImage('t2', './img/t_2.png');
         images.loadImage('t1', './img/t_1.png');
         images.loadImage('t0', './img/t_start.png');
+        images.loadImage('t_player_scores', './img/t_player_scores.png');
+        images.loadImage('t_a', './img/t_a.png');
+        images.loadImage('t_b', './img/t_b.png');
 
         images.preLoad( function(){
             //bumpH.init();
