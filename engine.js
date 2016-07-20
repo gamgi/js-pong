@@ -88,6 +88,12 @@ function VisualClass(canvasId, width, height) {
         display.ctx.globalAlpha = a;
         //display.ctx.drawImage(ImageClass.images[key], x, y);
     };
+    this.setRotation = function( x, y, angle) {
+        display.ctx.save();
+        display.ctx.translate( x, y);
+        display.ctx.rotate( angle * Math.PI / 180);
+        //display.ctx.translate( x, y);
+    }
     this.restore = function() {
         display.ctx.restore();
     };
@@ -155,15 +161,25 @@ function ImageClass( canvasId) {
 
 
 function InputClass() {
+
+    /**
+     * Public
+     */
+    this.UP = 38;
+    this.DOWN = 40;
+    this.LEFT = 37;
+    this.RIGHT = 39;
     /**
      * Private
      */
     var pressed = {};
     var released = {};
+    var hit = {};
     /**
      * Methods
      */
     this.pollKeys = function() {
+        // Returns currently pressed keys (i.e. keys that have not been lifted up)
         //var result = [];
         var keys = Object.keys( pressed);
         //var keysR = Object.keys( released);
@@ -174,12 +190,21 @@ function InputClass() {
                 keysP.splice( i, 1);
             }
         }*/
-        pressed = {};
+        //pressed = {};
         return keys;
     }
+    this.pollHits = function(){
+        // Returns key hit once. Then waits until key is lifted
+        var keys = Object.keys( hit);
+        return keys;
+    }
+
     function onKeyDown( event) {
         if (pressed[ event.keyCode] == undefined && released[ event.keyCode] != false){
             pressed[ event.keyCode] = true;
+            if (released[ event.keyCode] == undefined || released[ event.keyCode] == true) {
+                hit[ event.keyCode] = true;
+            }
             released[ event.keyCode] = false;
         }
     }

@@ -91,20 +91,21 @@ var GAME = new (function() {
             var height = 150;
             var y = 300;
             //PUBLIC
-            this.update = function() {
-                var inputs = input.pollKeys();
-                for (var i = 0; i<inputs.length; i++){
-                    var key = inputs[i];
-                    if ( key == keyUp){ // Up key (rotation)
-                        var key = inputs.pop();
-                        alert('je');
-                        y+=10;
-                    }
+            this.handleInput = function( key) {
+                if (key == keyUp){
+                    y -= 5;
+                }else if (key == keyDown) {
+                    y += 5;
                 }
+                // Clamp paddle inside screen
+                if ( y < 0) y = 0;
+                if ( y > HEIGHT-height) y = HEIGHT-height;
+            }
+            this.update = function() {
             }
             this.render = function() {
                 //visual.rectangle(x - width / 2, y - height / 2, width, height);
-                visual.drawImage('pad',x-width/2,y-height/2);
+                visual.drawImageStretch('pad', x-width/2, y, width, height);
             };
         };
         function Ball() {
@@ -113,28 +114,37 @@ var GAME = new (function() {
             var width = 50;
             var height = 50;
             var velocity = [3.1,3.9];
+            var angularVelocity = 1;
+            var angle = 0;
             this.update = function() {
+                // Velocity and bounds
+                // NB. because the ball iss drawn with rotation, it's origin is at center
                 x += velocity[0];
-                if (x<=0) {
-                    x = 0;
+                if (x<=width/2) {
+                    x = width/2;
                     velocity[0] = - velocity[0];
+                    angularVelocity += velocity[1];
                 }
-                if (x>=WIDTH-width) {
-                    x = WIDTH-width;
+                if (x>=WIDTH-width/2) {
+                    x = WIDTH-width/2;
                     velocity[0] = - velocity[0];
                 }
                 y += velocity[1];
-                if (y<=0) {
-                    y = 0;
+                if (y<=height/2) {
+                    y = height/2;
                     velocity[1] = - velocity[1];
                 }
-                if (y>=HEIGHT-height) {
-                    y = HEIGHT-height;
+                if (y>=HEIGHT-height/2) {
+                    y = HEIGHT-height/2;
                     velocity[1] = - velocity[1];
                 }
+                // Angular velocity
+                angle += angularVelocity;
             }
             this.render = function() {
-                visual.drawImage('ball',x,y);
+                visual.setRotation( x, y, angle);
+                visual.drawImageStretch('ball', -width/2, -height/2, width, height);
+                visual.restore();
             };
         }
         var players = [];
@@ -172,12 +182,14 @@ var GAME = new (function() {
             if (stopped == false) {
                 // Input
                 var inputs = input.pollKeys();
-                while ( inputs.length != 0) {
-                    var key = inputs.pop();
-                    if ( key == 38){ // Up key (rotation)
+                inputs.forEach( function( key) {
+                    players.forEach( function( o) { o.handleInput( key)});
+                });
+                    //var key = inputs.pop(); // NB actualyl deletes key from input's array
+                    /*if ( key == 38){ // Up key (rotation)
+                        players[0].input( key);
                     }else if( key == -40) { // Release Down key (move normal speed)
-                    }
-                }
+                    }*/
                 // Ball
                 balls.forEach( function( o) {o.update()});
             }
@@ -203,7 +215,7 @@ var GAME = new (function() {
         // Load images
         images.loadImage('bg', './img/bg.jpg');
         images.loadImage('pad', './img/maila.png');
-        images.loadImage('ball', './img/ball_small.png');
+        images.loadImage('ball', './img/ball.png');
         images.loadImage('t3', './img/t_3.png');
         images.loadImage('t2', './img/t_2.png');
         images.loadImage('t1', './img/t_1.png');
