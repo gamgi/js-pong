@@ -100,8 +100,22 @@ function VisualClass(canvasId, width, height) {
     this.drawImageStretch = function ( key, x, y, w, h) {
         display.ctx.drawImage(ImageClass.images[key], 0, 0, ImageClass.images[key].width, ImageClass.images[key].height, x,y, w, h);
     };
+    /*this.getFrame = function( key, n, w, h) {
+        var frame = document.createElement('canvas');
+        frame.width = w;
+        frame.height = h;
+        var ctx = frame.getContext('2d');
+        ctx.drawImage( ImageClass.images[key], 0, 0, w, h, 0, 0, w, h);
+        var img = document.createElement('img');
+        img.src = frame.toDataURL('image/png');
+        return img;
+    }*/
     this.drawImageStretchDelta = function ( key, x, y, w, h) {
         display.ctx.drawImage(ImageClass.images[key], 0, 0, ImageClass.images[key].width, ImageClass.images[key].height, x,y, ImageClass.images[key].width + w, ImageClass.images[key].height + h);
+    };
+    this.drawImageFrame = function ( key, x, y, frame) {
+        //var img = visual.getFrame( o.key, images.imageWidth( o.key), images.imageHeight( o.key));
+        display.ctx.drawImage(ImageClass.images[key], ImageClass.images[key].frameW * frame, 0, ImageClass.images[key].frameW, ImageClass.images[key].height, x,y, ImageClass.images[key].frameW , ImageClass.images[key].height );
     };
 
     /**
@@ -139,6 +153,12 @@ function ImageClass( canvasId) {
         else
             console.log("Unknown image key "+key);
     }
+    this.imageFrames = function( key) {
+        if (key in images)
+            return images[key].frames;
+        else
+            console.log("Unknown image key "+key);
+    }
     this.getImage = function( key) {
         if (key in images)
             return images[key];
@@ -151,6 +171,18 @@ function ImageClass( canvasId) {
         images[key].onload = function(){ loaded++;unloaded--;this.loaded = true;}.bind(this); //NB loaded refers to image specific
         images[key].onerror = function(){ console.log("Unable to load "+source);};
         images[key].src = source;
+        this.loaded = false;
+    }.bind(this);
+
+    this.loadAnimImage = function( key, source, frameW, frames) {
+        images[key] = new Image();
+        unloaded++;
+        images[key].onload = function(){ loaded++;unloaded--;this.loaded = true;}.bind(this); //NB loaded refers to image specific
+        images[key].onerror = function(){ console.log("Unable to load "+source);};
+        images[key].src = source;
+        images[key].anim = true;
+        images[key].frameW = frameW;
+        images[key].frames = frames;
         this.loaded = false;
     }.bind(this);
 

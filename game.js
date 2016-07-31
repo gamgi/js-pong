@@ -6,7 +6,7 @@ var GAME = new (function() {
     var WIDTH = 800;
     var HEIGHT = 600;
     var stopped = true;
-    var timer = new TimerClass( 40, run);
+    var timer = new TimerClass( 50, run);
     var visual = new VisualClass('screen', WIDTH, HEIGHT);
     var images = new ImageClass();
     var input = new InputClass();
@@ -23,12 +23,22 @@ var GAME = new (function() {
             var newSticker = {'key':key, 'x':x, 'y':y, 'tStart':tNow, 'tLive':tNow+tLive, 'tFade':tNow+tLive+tFade, 'alpha': 1, 'scale':scale};
             stickers.push( newSticker);
         }
+
+        this.addAnim = function( key, x, y, tLive, tFade, tFrame, frame, angle) {
+                    //hSpriteSticker.addAnim('explosion1', x, y, 400, 200, 4, 100);
+            if (angle == undefined){
+                angle = 0;
+            }
+            var tNow = Date.now();
+            var newSticker = {'key':key, 'x':x, 'y':y, 'tStart':tNow, 'tLive':tNow+tLive, 'tFade':tNow+tLive+tFade, 'alpha': 1, 'scale':1, 'anim':true, 'tFrame':tFrame, 'frame':frame, 'angle':angle};
+            stickers.push( newSticker);
+        }
         this.update = function() {
             var tNow = Date.now();
             var amount = stickers.length;
             for (var i = 0; i < amount; i++) {
                 var o = stickers[ i];
-            //stickers.forEach( function( o) {
+                // Fading
                 if (tNow > o.tFade) {
                     //kill sticker
                     //delete o;
@@ -39,6 +49,15 @@ var GAME = new (function() {
                 }else if ( tNow > o.tLive) {
                     o.alpha = 1 - (tNow - o.tLive) / (o.tFade - o.tLive);
                 }
+                // Animation
+                if (o.anim) {
+                    if (tNow > o.tStart) {
+                        o.frame = Math.floor((tNow-o.tStart)/o.tFrame);
+                        o.frame = Math.min( images.imageFrames( o.key), o.frame);
+                        // TODO clamp
+                    }
+                }
+
             }
             
         };
@@ -48,7 +67,14 @@ var GAME = new (function() {
                 visual.setAlpha( o.alpha);
                 var add = (1-o.alpha)*o.scale;
                 //visual.setRotation( o.x, o.y, 20-o.alpha*20);
-                visual.drawImageStretchDelta(o.key, o.x-add/2-images.imageWidth( o.key)/2, o.y-add/2-images.imageHeight( o.key)/2, add, add);
+                if (o.anim) {
+                    // TODO get roation working with these anims
+                    //visual.setRotation( o.x, o.y, o.angle);
+                    visual.drawImageFrame(o.key, o.x, o.y,  o.frame);
+                    //visual.restore();
+                } else{
+                    visual.drawImageStretchDelta(o.key, o.x-add/2-images.imageWidth( o.key)/2, o.y-add/2-images.imageHeight( o.key)/2, add, add);
+                }
                 //visual.drawImageStretchDelta(o.key, -images.imageWidth( o.key)/2-add/2, -images.imageHeight( o.key)/2-add/2, add, add);
             });
             visual.restore();
@@ -167,11 +193,15 @@ var GAME = new (function() {
                     y = height/2;
                     velocity[1] = - velocity[1];
                     angularVelocity = -velocity[0];
+                    hSpriteSticker.addAnim('explosion1', x-75, y+5, 50, 250, 50, 0,180);
                 }
                 if (y>=HEIGHT-height/2) {
                     y = HEIGHT-height/2;
                     velocity[1] = - velocity[1];
                     angularVelocity = velocity[0];
+                    // Wall hit explosion
+                    //hSpriteSticker.addAnim('explosion1', x, y-100, 600, 200, 1, 4, 200);
+                    hSpriteSticker.addAnim('explosion1', x, y-100, 50, 250, 50, 0);
                 }
                 // Angular velocity
                 angle += angularVelocity;
@@ -264,11 +294,21 @@ var GAME = new (function() {
         images.loadImage('t_player_scores', './img/t_player_scores.png');
         images.loadImage('t_a', './img/t_a.png');
         images.loadImage('t_b', './img/t_b.png');
+        images.loadAnimImage('explosion1', './img/explosion2.png', 200, 4);
 
         images.preLoad( function(){
             //bumpH.init();
             timer.start();
-            hCountDown.start( function(){ stopped = false;});
+            hCountDown.start( function(){ 
+                // Match starts
+        //this.addAnim = function( key, x, y, tLive, tFade, scale, tFrame, speed) {
+                //hSpriteSticker.addAnim('explosion1', 100, 100, 1000,1800, 1, 4, 20);
+        //this.addAnim = function( key, x, y, tLive, tFade, tFrame, speed) {
+                //hSpriteSticker.addAnim('explosion1', 100, 100, 1800,100, 500,  500);
+                //hSpriteSticker.addAnim('explosion1', 50, 50, 1000, 0, 500, 0);
+        //this.addAnim = function( key, x, y, tLive, tFade, tFrame, frame) {
+                stopped = false;
+            });
         });
     };
     /**
