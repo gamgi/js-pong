@@ -143,7 +143,11 @@ function ImageClass( canvasId) {
      */
     this.imageWidth = function( key) {
         if (key in images)
-            return images[key].width;
+            if (images[key].frames != 0) {
+                return images[key].width / images[key].frames;
+            }else {
+                return images[key].width;
+            }
         else
             console.log("Unknown image key "+key);
     }
@@ -172,6 +176,7 @@ function ImageClass( canvasId) {
         images[key].onerror = function(){ console.log("Unable to load "+source);};
         images[key].src = source;
         this.loaded = false;
+        images[key].frames = 0;
     }.bind(this);
 
     this.loadAnimImage = function( key, source, frameW, frames) {

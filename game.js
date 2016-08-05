@@ -69,9 +69,12 @@ var GAME = new (function() {
                 //visual.setRotation( o.x, o.y, 20-o.alpha*20);
                 if (o.anim) {
                     // TODO get roation working with these anims
-                    //visual.setRotation( o.x, o.y, o.angle);
-                    visual.drawImageFrame(o.key, o.x, o.y,  o.frame);
-                    //visual.restore();
+                    var width = images.imageWidth( o.key);
+                    var height = images.imageHeight( o.key);
+                    visual.setRotation( o.x, o.y, o.angle);
+                    //visual.drawImageFrame(o.key, o.x, o.y,  o.frame);
+                    visual.drawImageFrame(o.key, -width/2, -height/2,  o.frame);
+                    visual.restore();
                 } else{
                     visual.drawImageStretchDelta(o.key, o.x-add/2-images.imageWidth( o.key)/2, o.y-add/2-images.imageHeight( o.key)/2, add, add);
                 }
@@ -193,7 +196,7 @@ var GAME = new (function() {
                     y = height/2;
                     velocity[1] = - velocity[1];
                     angularVelocity = -velocity[0];
-                    hSpriteSticker.addAnim('explosion1', x-75, y+5, 50, 250, 50, 0,180);
+                    hSpriteSticker.addAnim('explosion1', x-35, y-15, 50, 250, 50, 0,180);
                 }
                 if (y>=HEIGHT-height/2) {
                     y = HEIGHT-height/2;
@@ -201,7 +204,7 @@ var GAME = new (function() {
                     angularVelocity = velocity[0];
                     // Wall hit explosion
                     //hSpriteSticker.addAnim('explosion1', x, y-100, 600, 200, 1, 4, 200);
-                    hSpriteSticker.addAnim('explosion1', x, y-100, 50, 250, 50, 0);
+                    hSpriteSticker.addAnim('explosion1', x+35, y+15, 50, 250, 50, 0);
                 }
                 // Angular velocity
                 angle += angularVelocity;
